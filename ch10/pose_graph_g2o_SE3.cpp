@@ -1,11 +1,11 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <string>
 
-#include <g2o/types/slam3d/types_slam3d.h>
 #include <g2o/core/block_solver.h>
 #include <g2o/core/optimization_algorithm_levenberg.h>
 #include <g2o/solvers/eigen/linear_solver_eigen.h>
+#include <g2o/types/slam3d/types_slam3d.h>
 
 using namespace std;
 
@@ -16,13 +16,16 @@ using namespace std;
  * 这里使用g2o/types/slam3d/中的SE3表示位姿，它实质上是四元数而非李代数.
  * **********************************************/
 
-int main(int argc, char **argv) {
-    if (argc != 2) {
+int main(int argc, char **argv)
+{
+    if (argc != 2)
+    {
         cout << "Usage: pose_graph_g2o_SE3 sphere.g2o" << endl;
         return 1;
     }
     ifstream fin(argv[1]);
-    if (!fin) {
+    if (!fin)
+    {
         cout << "file " << argv[1] << " does not exist." << endl;
         return 1;
     }
@@ -32,15 +35,17 @@ int main(int argc, char **argv) {
     typedef g2o::LinearSolverEigen<BlockSolverType::PoseMatrixType> LinearSolverType;
     auto solver = new g2o::OptimizationAlgorithmLevenberg(
         g2o::make_unique<BlockSolverType>(g2o::make_unique<LinearSolverType>()));
-    g2o::SparseOptimizer optimizer;     // 图模型
-    optimizer.setAlgorithm(solver);   // 设置求解器
-    optimizer.setVerbose(true);       // 打开调试输出
+    g2o::SparseOptimizer optimizer; // 图模型
+    optimizer.setAlgorithm(solver); // 设置求解器
+    optimizer.setVerbose(true);     // 打开调试输出
 
     int vertexCnt = 0, edgeCnt = 0; // 顶点和边的数量
-    while (!fin.eof()) {
+    while (!fin.eof())
+    {
         string name;
         fin >> name;
-        if (name == "VERTEX_SE3:QUAT") {
+        if (name == "VERTEX_SE3:QUAT")
+        {
             // SE3 顶点
             g2o::VertexSE3 *v = new g2o::VertexSE3();
             int index = 0;
@@ -51,10 +56,12 @@ int main(int argc, char **argv) {
             vertexCnt++;
             if (index == 0)
                 v->setFixed(true);
-        } else if (name == "EDGE_SE3:QUAT") {
+        }
+        else if (name == "EDGE_SE3:QUAT")
+        {
             // SE3-SE3 边
             g2o::EdgeSE3 *e = new g2o::EdgeSE3();
-            int idx1, idx2;     // 关联的两个顶点
+            int idx1, idx2; // 关联的两个顶点
             fin >> idx1 >> idx2;
             e->setId(edgeCnt++);
             e->setVertex(0, optimizer.vertices()[idx1]);
@@ -62,7 +69,8 @@ int main(int argc, char **argv) {
             e->read(fin);
             optimizer.addEdge(e);
         }
-        if (!fin.good()) break;
+        if (!fin.good())
+            break;
     }
 
     cout << "read total " << vertexCnt << " vertices, " << edgeCnt << " edges." << endl;
